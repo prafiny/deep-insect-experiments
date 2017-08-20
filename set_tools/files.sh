@@ -1,0 +1,42 @@
+HM=/home/maxime/sets
+
+function get_set_info {
+    case $1 in
+    irbi)
+        SET="IRBI"
+        dir="$HM/irbi"
+        WHOLE_CSV="$dir/CSVs/truncated.csv"
+        TRAINING_CSV="$dir/CSVs/truncated_training.csv"
+        TESTING_CSV="$dir/CSVs/truncated_testing.csv"
+        REDUCED_CSV="$dir/CSVs/truncated_reduced.csv"
+        MEANSTD="$dir/stddata/meanstd.pkl"
+        IMG_FOLDER="$dir/norecalib_scaled"
+        SIFT_FOLDER="$dir/sift"
+        SPLIT_LIB="./set_tools/irbi.py"
+        ;;
+    irbi_field)
+        SET="IRBI_FIELD"
+        dir="$HM/irbi_field"
+        WHOLE_CSV="$dir/CSVs/data.csv"
+        TRAINING_CSV="$dir/CSVs/truncated_training.csv"
+        TESTING_CSV="$dir/CSVs/truncated_testing.csv"
+        REDUCED_CSV="$dir/CSVs/truncated_reduced.csv"
+        MEANSTD="$dir/stddata/meanstd.pkl"
+        IMG_FOLDER="$dir/img_rescaled"
+        SIFT_FOLDER="$dir/sift"
+        SPLIT_LIB="./set_tools/irbi_field.py"
+        ;;
+    imagenet)
+        SET="ImageNet"
+        dir="$HM/imagenet"
+        WHOLE_CSV="$dir/CSVs/reduced_truncated.csv"
+        TRAINING_CSV="$dir/CSVs/training.csv"
+        TESTING_CSV="$dir/CSVs/testing.csv"
+        REDUCED_CSV="$dir/CSVs/testing.csv"
+        MEANSTD="$dir/stddata/meanstd.pkl"
+        IMG_FOLDER="$dir/imgs"
+        SIFT_FOLDER="$dir/sift"
+        SPLIT_LIB="./set_tools/imagenet.py"
+        ;;
+    esac
+}
