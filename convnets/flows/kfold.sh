@@ -16,7 +16,6 @@ cp "$MEANSTD" meanstd.pkl
 cp "$SPLIT_LIB" set_tools/split.py
 
 mkdir results
-. ~/dev/tensorflow_gpu/bin/activate
 
 python $SCRIPT --cross-validation --training $IMG_FOLDER --csvfile $WHOLE_CSV $TRAIN_PARAM > results/training.log 2>&1
 
@@ -29,12 +28,3 @@ for combination in results/kfold/*; do
 done
 
 python kfold_report.py --truth-csv $WHOLE_CSV --results-folder results/kfold/ --name ${title} > results/report.html 2> results/report.err
-
-FOLDER=~/experiments/${title}
-mkdir -p $FOLDER
-tar -zcvf $FOLDER/${title}.tar.gz .
-cp -r results $FOLDER/results
-cp results/report.html $FOLDER/report.html
-mkdir $FOLDER/code
-cp -r * $FOLDER/code/
-rm . -r
