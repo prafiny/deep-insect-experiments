@@ -37,8 +37,8 @@ define(GET_TRAIN_VALID_SPLIT, `
     Xtrain, ytrain = train
     Xvalid, yvalid = test
 
-    nb_samples_epoch = roundmult(`len'(ytrain), bat_size)
-    nb_validation_samples = `len'(yvalid)
+    steps_per_epoch = `round'(`len'(ytrain)/bat_size)
+    validation_steps = `len'(yvalid)
 ')
 
 define(CREATE_GENERATORS, `
@@ -72,8 +72,8 @@ define(TRAIN, `
             write_csv(os.path.join(folder_name, "validation.csv"), select_subcsv(csvcontent, 0, Xvalid))
             write_csv(os.path.join(folder_name, "testing.csv"), select_subcsv(csvcontent, 0, Xtest))
 
-            nb_samples_epoch = roundmult(`len'(ytrain), bat_size)
-            nb_validation_samples = `len'(yvalid)
+            steps_per_epoch = round(`len'(ytrain)/bat_size)
+            validation_steps = `len'(yvalid)
             train_generator, validation_generator = get_generators(Xtrain, ytrain, Xvalid, yvalid, bat_size)
             start_time = time.time()
             res = fit()
@@ -116,8 +116,9 @@ define(TRAIN, `
     
                     class_weights = compute_class_weights(ytrain, training_names)
     
-                    nb_samples_epoch = roundmult(`len'(ytrain), bat_size)
-                    nb_validation_samples = `len'(yvalid)
+                    steps_per_epoch = `round'(`len'(ytrain)/bat_size)
+                    validation_steps = `len'(yvalid)
+
                     train_generator, validation_generator = get_generators(Xtrain, ytrain, Xvalid, yvalid, bat_size)
                     start_time = time.time()
                     res = fit()
@@ -135,8 +136,8 @@ define(TRAIN, `
 
         class_weights = compute_class_weights(ytrain, training_names)
 
-        nb_samples_epoch = roundmult(`len'(ytrain), bat_size)
-        nb_validation_samples = `len'(yvalid)
+        steps_per_epoch = `round'(`len'(ytrain)/bat_size)
+        validation_steps = `len'(yvalid)
         train_generator, validation_generator = get_generators(Xtrain, ytrain, Xvalid, yvalid, bat_size)
         start_time = time.time()
         res = fit()
@@ -163,20 +164,20 @@ def fit():
     if args["with_weighting"]:
         print("Weighting applied")
         return model.fit_generator(train_generator,
-                samples_per_epoch=nb_samples_epoch,
-                nb_epoch=nb_epoch,
+                steps_per_epoch=steps_per_epoch,
+                epochs=nb_epoch,
                 validation_data=validation_generator,
-                nb_val_samples=nb_validation_samples,
+                validation_steps=nb_validation_samples,
                 callbacks=cb,
                 class_weight=class_weights
         )
     else:
         print("No weighting applied")
         return model.fit_generator(train_generator,
-                samples_per_epoch=nb_samples_epoch,
-                nb_epoch=nb_epoch,
+                steps_per_epoch=steps_per_epoch,
+                epochs=nb_epoch,
                 validation_data=validation_generator,
-                nb_val_samples=nb_validation_samples,
+                validation_steps=nb_validation_samples,
                 callbacks=cb
         )
         
@@ -232,9 +233,9 @@ def get_generators(Xtrain, ytrain, Xvalid, yvalid, bat_size):
 
 from keras import backend as K
 def get_input_shape(input_size):
-    if K.image_dim_ordering() == 'th':
-        return (3,) + input_size
-    else:
+    if K.image_data_format() == 'channels_last':
         return input_size + (3,)
+    else:
+        return (3,) + input_size
 
 from pprint import pprint

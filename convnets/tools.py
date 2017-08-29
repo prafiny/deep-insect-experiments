@@ -19,13 +19,6 @@ from PIL import Image
 from keras import backend as K
 from keras.preprocessing.image import Iterator, img_to_array, array_to_img, ImageDataGenerator
 
-def roundmult(x, m):
-    if m == 0:
-        return x
-    rem = x % m
-    if rem == 0:
-        return x
-    return x + m - rem
 
 def flow_from_paths(self, filenames, labels,
                         target_size=(256, 256), color_mode='rgb',
@@ -36,7 +29,7 @@ def flow_from_paths(self, filenames, labels,
         filenames, labels, self,
         target_size=target_size, color_mode=color_mode,
         classes=classes, class_mode=class_mode,
-        dim_ordering=self.dim_ordering,
+        data_format=self.data_format,
         batch_size=batch_size, shuffle=shuffle, seed=seed,
         save_to_dir=save_to_dir, save_prefix=save_prefix, save_format=save_format)
 
@@ -82,12 +75,12 @@ class PathsListIterator(Iterator):
 
     def __init__(self, filenames, labels, image_data_generator,
                  target_size=(256, 256), color_mode='rgb',
-                 dim_ordering='default',
+                 data_format=None,
                  classes=None, class_mode='categorical',
                  batch_size=32, shuffle=True, seed=None,
                  save_to_dir=None, save_prefix='', save_format='jpeg'):
-        if dim_ordering == 'default':
-            dim_ordering = K.image_dim_ordering()
+        if data_format is None:
+            data_format = K.image_data_format()
         self.filenames = filenames
         self.labels = labels
         self.image_data_generator = image_data_generator
@@ -96,14 +89,14 @@ class PathsListIterator(Iterator):
             raise ValueError('Invalid color mode:', color_mode,
                              '; expected "rgb" or "grayscale".')
         self.color_mode = color_mode
-        self.dim_ordering = dim_ordering
+        self.data_format = data_format
         if self.color_mode == 'rgb':
-            if self.dim_ordering == 'tf':
+            if self.data_format == 'channels_last':
                 self.image_shape = self.target_size + (3,)
             else:
                 self.image_shape = (3,) + self.target_size
         else:
-            if self.dim_ordering == 'tf':
+            if self.data_format == 'channels_last':
                 self.image_shape = self.target_size + (1,)
             else:
                 self.image_shape = (1,) + self.target_size
@@ -141,14 +134,14 @@ class PathsListIterator(Iterator):
         for i, j in enumerate(index_array):
             fname = self.filenames[j]
             img = load_img(fname, grayscale=grayscale, target_size=self.target_size)
-            x = img_to_array(img, dim_ordering=self.dim_ordering)
+            x = img_to_array(img, data_format=self.data_format)
             x = self.image_data_generator.random_transform(x)
             x = self.image_data_generator.standardize(x)
             batch_x[i] = x
         # optionally save augmented images to disk for debugging purposes
         if self.save_to_dir:
             for i in range(current_batch_size):
-                img = array_to_img(batch_x[i], self.dim_ordering, scale=True)
+                img = array_to_img(batch_x[i], self.data_format, scale=True)
                 fname = '{prefix}_{index}_{hash}.{format}'.format(prefix=self.save_prefix,
                                                                   index=current_index + i,
                                                                   hash=np.random.randint(1e4),
