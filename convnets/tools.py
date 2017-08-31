@@ -48,9 +48,10 @@ def centered_crop(img, size):
 def improved_resize(img, size):
     width = np.size(img, 1)
     height = np.size(img, 0)
-    i = img.copy()
+    nsize = min(width, height)
+    i = centered_crop(img, (nsize, nsize))
     i.thumbnail((size))
-    return centered_crop(img, (size[0], size[1]))
+    return i
 
 def load_img(path, grayscale=False, target_size=None):
     '''Load an image into PIL format.
